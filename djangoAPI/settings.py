@@ -22,18 +22,21 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '0k&r)@)28b69w657%6e48uuaw^(f_g!*z@@3!&mffa=yk1-ci-'
 
+
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = False
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '93.188.164.182',
+    'api.anonsys.tech',
+    'localhost',
     # 'anonsys.tech'
 ]
 
 CORS_ORIGIN_WHITELIST = (
-    # 'localhost:4200',
-    '93.188.164.182',
+    'localhost:9999',
+    'anonsys.tech',
+    # '93.188.164.182',
 )
 # CORS_ORIGIN_ALLOW_ALL = True
 
@@ -49,6 +52,7 @@ INSTALLED_APPS = [
     'djangoAPI.api',
     'rest_framework',
     'corsheaders',
+    'rest_framework_tracking',
 ]
 
 MIDDLEWARE = [
@@ -159,3 +163,5 @@ sentry_sdk.init(
     dsn="https://fef4d776407348b3b5d6df23706e2e32@sentry.io/1371566",
     integrations=[DjangoIntegration()]
 )
+
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')

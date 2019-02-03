@@ -8,9 +8,11 @@ from requests import get
 
 from .models import Movie, Post
 
+from rest_framework_tracking.mixins import LoggingMixin
+
 
 # Movie ViewSet below:
-class MovieViewSet(viewsets.ModelViewSet):
+class MovieViewSet(LoggingMixin, viewsets.ModelViewSet):
     """
     API endpoint that allows movies to be viewed or edited.
     """
@@ -19,7 +21,7 @@ class MovieViewSet(viewsets.ModelViewSet):
 
 
 # Blog Posts View below:
-class PostViewSet(viewsets.ModelViewSet):
+class PostViewSet(LoggingMixin, viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')  # Newest first
     serializer_class = PostSerializer
 
