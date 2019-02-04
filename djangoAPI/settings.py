@@ -20,24 +20,16 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '0k&r)@)28b69w657%6e48uuaw^(f_g!*z@@3!&mffa=yk1-ci-'
+SECRET_KEY = os.environ.get('SECRET_KEY', '')
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = False
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False')
 
-ALLOWED_HOSTS = [
-    'api.anonsys.tech',
-    'localhost',
-    # 'anonsys.tech'
-]
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '[]')
 
-CORS_ORIGIN_WHITELIST = (
-    'localhost:9999',
-    'anonsys.tech',
-    # '93.188.164.182',
-)
+CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST', '()')
+
 # CORS_ORIGIN_ALLOW_ALL = True
 
 # Application definition
@@ -93,11 +85,11 @@ WSGI_APPLICATION = 'djangoAPI.wsgi.application'
 
 DATABASES = {
     'default': {
-        'NAME': 'anonsys_db',
+        'NAME': os.environ.get('DJANGO_DEFAULT_DATABASE_NAME', ''),
         'ENGINE': 'mysql.connector.django',
         'USER': 'root',
         # 'PASSWORD': '',
-        'PASSWORD': os.environ['DJANGO_DATABASE_PWD'],
+        'PASSWORD': os.environ.get('DJANGO_DATABASE_PWD', ''),
         'OPTIONS': {
             'autocommit': False,
         },
@@ -164,4 +156,7 @@ sentry_sdk.init(
     integrations=[DjangoIntegration()]
 )
 
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'mail.example.com')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'test@example.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'testpassword')
+GOOGLE_RECAPTCHA_SECRET_KEY = os.environ.get('GOOGLE_RECAPTCHA_SECRET_KEY', '')
