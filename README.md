@@ -10,6 +10,7 @@ Start Backend: nohup python3 anonsys_tech/manage.py runserver <ip>:8000 >> testi
 * DEBUG - Django Debug Mode Boolean
 * ALLOWED_HOST - Allowed Hosts To Run Django App
 * CORS_ORIGIN_WHITELIST - Django Cors Origin Whitelist
+* EMAIL_HOST - Email server address
 * EMAIL_HOST_USER - Email Address for Host Email Account
 * EMAIL_HOST_PASSWORD - Email Password for EMAIL_HOST_USER
 * GOOGLE_RECAPTCHA_SECRET_KEY - Google Account Recaptcha Secret Key
