@@ -108,3 +108,4 @@ venv.bak/
 
 # Static Files
 static/
+staticfiles/
