@@ -19,12 +19,12 @@ class MovieSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class PostSerializer(serializers.HyperlinkedModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username') # Populate field with owner
+
     class Meta:
         model = Post
-        posts = serializers.PrimaryKeyRelatedField(many=True, queryset=Post.objects.all())
-        owner = serializers.ReadOnlyField(source='owner.username') # Populate field with owner
-        # fields = '__all__' # Provides url instead of id
-        fields = getFields(Post)
+        fields = '__all__' # Provides url instead of id
+        # fields = getFields(Post)
 
 class Ipserializer(serializers.Serializer):
     ip = serializers.IPAddressField()

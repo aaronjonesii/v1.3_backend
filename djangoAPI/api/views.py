@@ -65,11 +65,6 @@ def get_client_ip(request):
     return ip_addr
 
 
-class UserList(LoggingMixin, generics.ListAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-
-class UserDetail(LoggingMixin, generics.RetrieveAPIView):
+class UserViewSet(LoggingMixin, viewsets.ReadOnlyModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
