@@ -1,7 +1,10 @@
-from .serializers import Movieserializer, PostSerializer
+from .serializers import MovieSerializer, PostSerializer, UserSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.contrib.auth.models import User
 from rest_framework.views import APIView
+from rest_framework import permissions
+from .permissions import IsOwnerOrReadOnly
 from rest_framework import viewsets
 from rest_framework import generics
 from requests import get
@@ -17,13 +20,18 @@ class MovieViewSet(LoggingMixin, viewsets.ModelViewSet):
     API endpoint that allows movies to be viewed or edited.
     """
     queryset = Movie.objects.all().order_by('-released') # Newest first
-    serializer_class = Movieserializer
+    serializer_class = MovieSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,) # Read Only to public
 
 
 # Blog Posts View below:
 class PostViewSet(LoggingMixin, viewsets.ModelViewSet):
     queryset = Post.objects.all().order_by('-created_at')  # Newest first
     serializer_class = PostSerializer
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly) # Read Only unless owner
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
 
 
 # IP View below:
@@ -55,3 +63,13 @@ def get_client_ip(request):
     else:
         ip_addr = request.META.get('REMOTE_ADDR')
     return ip_addr
+
+
+class UserList(LoggingMixin, generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+class UserDetail(LoggingMixin, generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer

@@ -33,6 +33,8 @@ urlpatterns = [
     path('ip/', views.ipView, name='ip'), # Get IP info from requestor
     re_path(rf'^ip/(?P<query_ip>{ipv4pattern}))/$', views.searchIP, name='search_ip'),  # Get IPv4 info from query_ip
     re_path(rf'^ip/(?P<query_ip>{ipv6pattern})/$', views.searchIP, name='search_ip'),  # Get IPv6 info from query_ip
-    url(r'^', include(router.urls))
-    # url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    path('users/', views.UserList.as_view()), # User List
+    path('users/<int:pk>/', views.UserDetail.as_view()), # User Detail
+    path('api-login/', include('rest_framework.urls', namespace='rest_framework')), # Admin Panel
+    url(r'^', include(router.urls)) # Default view
 ]

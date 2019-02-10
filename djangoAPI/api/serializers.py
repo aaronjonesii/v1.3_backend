@@ -1,5 +1,6 @@
 from .models import Movie, Post
 from rest_framework import serializers
+from django.contrib.auth.models import User
 
 
 def getFields(model):
@@ -11,7 +12,7 @@ def getFields(model):
     return fields_list
 
 
-class Movieserializer(serializers.HyperlinkedModelSerializer):
+class MovieSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Movie
         fields = getFields(Movie)
@@ -20,12 +21,18 @@ class Movieserializer(serializers.HyperlinkedModelSerializer):
 class PostSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Post
+        posts = serializers.PrimaryKeyRelatedField(many=True, queryset=Post.objects.all())
+        owner = serializers.ReadOnlyField(source='owner.username') # Populate field with owner
         # fields = '__all__' # Provides url instead of id
         fields = getFields(Post)
-
 
 class Ipserializer(serializers.Serializer):
     ip = serializers.IPAddressField()
     response = serializers.JSONField()
 
 
+class UserSerializer(serializers.ModelSerializer):
+    posts = serializers.PrimaryKeyRelatedField(many=True, queryset=Post.objects.all())
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'posts')

@@ -32,6 +32,7 @@ class Post(models.Model):
     image = models.URLField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    owner = models.ForeignKey('auth.User', related_name='posts', on_delete=models.CASCADE)
     # To reset id: ALTER TABLE api_post AUTO_INCREMENT = 1;
 
     def __str__(self):
