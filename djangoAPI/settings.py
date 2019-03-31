@@ -36,17 +36,22 @@ CORS_ORIGIN_WHITELIST = (os.environ.get('CORS_ORIGIN_WHITELIST', ''))
 # Application definition
 
 INSTALLED_APPS = [
+    'django_mysql',
+    'channels',
+    'djangoAPI.api',
+    'rest_framework.authtoken',
+    'rest_framework',
+    'corsheaders',
+    'rest_framework_tracking',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'djangoAPI.api',
-    'rest_framework',
-    'corsheaders',
-    'rest_framework_tracking',
 ]
+
+AUTH_USER_MODEL = 'api.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -82,6 +87,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'djangoAPI.wsgi.application'
 
+ASGI_APPLICATION = 'djangoAPI.routing.application'
 
 # Database
 # https://docs.djangoproject.com/en/2.1/ref/settings/#databases
@@ -95,7 +101,13 @@ DATABASES = {
         'PASSWORD': os.environ.get('DJANGO_DATABASE_PWD', ''),
         'OPTIONS': {
             'autocommit': False,
+            'charset': 'utf8mb4',
         },
+        # Tell Django to build the test database with the 'utf8mb4' character set
+        'TEST': {
+            'CHARSET': 'utf8mb4',
+            'COLLATION': 'utf8mb4_unicode_ci',
+        }
     }
 }
 
@@ -146,8 +158,10 @@ STATICFILES_DIRS = (
 
 # FOR DJANGO REST FRAMEWORK PAGINATION
 REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': ('rest_framework_simplejwt.authentication.JWTAuthentication', ),
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 50,
+    # 'PAGINATE_BY': 10
     # 'DEFAULT_RENDERER_CLASSES': (
     #     'rest_framework.renderers.JSONRenderer',
     # ),
@@ -165,10 +179,26 @@ sentry_sdk.init(
     integrations=[DjangoIntegration()]
 )
 
+
+# Environment Variables
 EMAIL_HOST = os.environ.get('EMAIL_HOST', 'mail.example.com')
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'test@example.com')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'testpassword')
 GOOGLE_RECAPTCHA_SECRET_KEY = os.environ.get('GOOGLE_RECAPTCHA_SECRET_KEY', '')
 
+
 # Whitenoise Statis Files
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+
+# Channels
+REDIS_URL = os.getenv('REDIS_URL', 'redis://localhost:6379')
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [REDIS_URL],
+        },
+    },
+}

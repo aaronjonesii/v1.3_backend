@@ -1,17 +1,21 @@
-from .serializers import MovieSerializer, PostSerializer, UserSerializer
+from .serializers import MovieSerializer, UserSerializer, TaskSerializer
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-from rest_framework.views import APIView
-from rest_framework import permissions
-from .permissions import IsOwnerOrReadOnly
 from rest_framework import viewsets
-from rest_framework import generics
-from requests import get
+from django.contrib.auth import get_user_model, login, logout # Channels
+from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from rest_framework import generics, permissions, status, views# ||
+from requests import get # IP
+# from .permissions import IsOwnerOrReadOnly # Custom Permission
+from .models import Movie, Task
+from rest_framework_tracking.mixins import LoggingMixin # Log Serializer Usage in DB
 
-from .models import Movie, Post
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
 
-from rest_framework_tracking.mixins import LoggingMixin
+from rest_framework_simplejwt.tokens import RefreshToken
 
 
 # Movie ViewSet below:
@@ -19,19 +23,9 @@ class MovieViewSet(LoggingMixin, viewsets.ModelViewSet):
     """
     API endpoint that allows movies to be viewed or edited.
     """
-    queryset = Movie.objects.all().order_by('-released') # Newest first
+    queryset = Movie.objects.all().order_by('-released')  # Newest first
     serializer_class = MovieSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,) # Read Only to public
-
-
-# Blog Posts View below:
-class PostViewSet(LoggingMixin, viewsets.ModelViewSet):
-    queryset = Post.objects.all().order_by('-created_at')  # Newest first
-    serializer_class = PostSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly, IsOwnerOrReadOnly) # Read Only unless owner
-
-    def perform_create(self, serializer):
-        serializer.save(owner=self.request.user)
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)  # Read Only to public
 
 
 # IP View below:
@@ -66,5 +60,126 @@ def get_client_ip(request):
 
 
 class UserViewSet(LoggingMixin, viewsets.ReadOnlyModelViewSet):
-    queryset = User.objects.all()
+    """
+    API endpoint that allows users to be viewed
+    """
+    queryset = get_user_model().objects.all()
     serializer_class = UserSerializer
+
+
+class SignUpView(LoggingMixin, generics.CreateAPIView):
+    """
+    API endpoint that allows Users to Signup
+    """
+    queryset = get_user_model().objects.all()
+    serializer_class = UserSerializer
+
+
+class LogInView(LoggingMixin, views.APIView):
+    """
+    API endpoint that allows Users to Login
+    """
+    def post(self, request):
+        form = AuthenticationForm(data=request.data)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user=form.get_user())
+            return Response(UserSerializer(user).data)
+        else:
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogOutView(LoggingMixin, views.APIView):
+    """
+    API endpoint that allows signed in users to Logout
+    """
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def delete(self, *args, **kwargs):
+        logout(self.request)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class TaskView(LoggingMixin, viewsets.ModelViewSet):
+    """
+    API endpoint that allows signed in users to view their tasks
+    """
+    lookup_field = 'ident'
+    lookup_url_kwarg = 'task_ident'
+    # queryset = Task.objects.all().order_by('updated')
+    serializer_class = TaskSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        user = self.request.user
+        return Task.objects.filter(owner=user)
+
+    # Assign logged in user to created task
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+class CustomAuthToken(ObtainAuthToken):
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'username': user.username,
+            'email': user.email
+        })
+
+
+class ViewUser(LoggingMixin, views.APIView):
+
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, format=None):
+        user = self.request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class CustomLoginJWTAuthToken(LoggingMixin, views.APIView):
+
+    def post(self, request):
+        form = AuthenticationForm(data=request.data)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user=form.get_user())
+
+            refresh = RefreshToken.for_user(request.user)
+            return Response({
+                'token': {
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                },
+        })
+        else:
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class CustomSignUpJWTAuthToken(LoggingMixin, views.APIView):
+
+    def post(self, request):
+        data = request.data
+        form = UserSerializer(data=data)
+        if form.is_valid():
+            new_user = form.save()
+            print(new_user, dir(new_user))
+            login(request, user=new_user)
+
+
+            refresh = RefreshToken.for_user(request.user)
+            print('Returning tokens for => ', request.user)
+            return Response({
+                'token': {
+                    'refresh': str(refresh),
+                    'access': str(refresh.access_token),
+                },
+        })
+        else:
+            return Response(form.errors, status=status.HTTP_400_BAD_REQUEST)

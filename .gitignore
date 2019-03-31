@@ -109,3 +109,6 @@ venv.bak/
 # Static Files
 static/
 staticfiles/
+
+# Pytest
+dump.rdb
