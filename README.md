@@ -3,6 +3,10 @@
 
 Start Backend: nohup python3 anonsys_tech/manage.py runserver <ip>:8000 >> testing_backend.log &
  
+## Authentication Method
+* [JWT Authentication(Active)](https://github.com/davesque/django-rest-framework-simplejwt)
+* [Basic Token Authentication](https://www.django-rest-framework.org/api-guide/authentication/)
+ 
 ## Environment variables:
 * DJANGO_DEFAULT_DATABASE_NAME - MySQL Database Name
 * DJANGO_DATABASE_PWD - MySQL Database Password
