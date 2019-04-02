@@ -169,12 +169,10 @@ class CustomSignUpJWTAuthToken(LoggingMixin, views.APIView):
         form = UserSerializer(data=data)
         if form.is_valid():
             new_user = form.save()
-            print(new_user, dir(new_user))
             login(request, user=new_user)
 
 
             refresh = RefreshToken.for_user(request.user)
-            print('Returning tokens for => ', request.user)
             return Response({
                 'token': {
                     'refresh': str(refresh),
