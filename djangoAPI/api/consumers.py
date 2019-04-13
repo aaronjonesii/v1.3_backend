@@ -33,9 +33,10 @@ class TaskConsumer(AsyncJsonWebsocketConsumer):
             await self.accept()
 
     async def receive_json(self, content, **kwargs):
+        print('#consumers.py - Request from client => ', content)
         message_type = content.get('type')
         if message_type == 'create.task':
-            await self.test_task(content)
+            await self.create_task(content)
         elif message_type == 'update.task':
             await self.update_task(content)
         elif message_type == 'view.tasks':
@@ -59,16 +60,11 @@ class TaskConsumer(AsyncJsonWebsocketConsumer):
 
     async def create_task(self, event):
         task = await self._create_task(event.get('data'))
-        task_data = ReadOnlyTaskSerializer(task).data
-
-        # Handle add only if trip is not being tracked
-        if task.ident not in self.tasks:
-            self.tasks.add(task.ident)
-            await self.channel_layer.group_add(group=task.ident, channel=self.channel_name)
-
+        task_data = ReadOnlyTaskSerializer(task).data  # Newly created task data
+        tasks = await self._return_tasks(self.scope['user'])
         await self.send_json({
-            'type': 'MESSAGE',
-            'data': task_data
+            'type': 'TASKS',
+            'data': tasks
         })
 
     async def update_task(self, event):
@@ -92,7 +88,7 @@ class TaskConsumer(AsyncJsonWebsocketConsumer):
     async def view_tasks(self):
         tasks = await self._return_tasks(self.scope['user'])
         await self.send_json({
-            'type': 'MESSAGE',
+            'type': 'TASKS',
             'data': tasks
         })
 
@@ -113,14 +109,11 @@ class TaskConsumer(AsyncJsonWebsocketConsumer):
         await super().disconnect(code)
 
     @database_sync_to_async
-    def _create_task(self, user_id, task):
+    def _create_task(self, task):
         task['owner'] = self.scope['user'].pk
-        print('Task data before creation in consumer: ', task)
         serializer = TaskSerializer(data=task)
         serializer.is_valid(raise_exception=True)
-        print('Serializer validated data: ', serializer.validated_data)
         task = serializer.create(serializer.validated_data)
-        print('Task after creation in consumer: ', task.owner_id, task)
         return task
 
     @database_sync_to_async

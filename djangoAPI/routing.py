@@ -10,6 +10,11 @@ from .api.consumers import TaskConsumer
 
 from channels.auth import AuthMiddlewareStack
 from rest_framework.authtoken.models import Token
+from rest_framework_simplejwt.serializers import TokenVerifySerializer
+from rest_framework_simplejwt.exceptions import TokenError
+import jwt
+from djangoAPI import settings
+from django.contrib.auth import get_user_model
 
 
 class TokenAuthMiddleware:
@@ -21,17 +26,20 @@ class TokenAuthMiddleware:
         self.inner = inner
 
     def __call__(self, scope):
-        headers = dict(scope['headers'])
-        if b'authorization' in headers:
+        # TODO: Pass token in from query string amd use TokenVerifySerializer to verify validity
+        # TODO: Get User ID from payload of JWT token
+        if scope['query_string']:
             try:
-                token_name, token_key = headers[b'authorization'].decode().split()
-                if token_name == 'Token':
-                    token = Token.objects.get(key=token_key)
-                    scope['user'] = token.user
-            except Token.DoesNotExist:
+                request_query_string = scope['query_string'].decode('utf-8').split('=')
+                access_token = request_query_string[1]
+                decoded_token = jwt.decode(jwt=access_token, key=settings.SECRET_KEY)
+                user_id = decoded_token.get('user_id')
+                user = get_user_model().objects.get(id__contains=user_id)
+                if TokenVerifySerializer().validate(attrs={"token": access_token}) == {} : # If token is valid
+                    scope['user'] = user
+            except TokenError: # Catch invalid/expired token from TokenVerifySerializer()
                 pass
         return self.inner(scope)
-
 
 TokenAuthMiddlewareStack = lambda inner: TokenAuthMiddleware(AuthMiddlewareStack(inner))
 
