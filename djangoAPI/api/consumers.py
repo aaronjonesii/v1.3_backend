@@ -30,6 +30,7 @@ class TaskConsumer(AsyncJsonWebsocketConsumer):
             # for task in self.tasks:
             #     channel_groups.append(self.channel_layer.group_add(task, self.channel_name))
             # asyncio.gather(*channel_groups)
+            # TODO: Check if token is valid
             await self.accept()
 
     async def receive_json(self, content, **kwargs):
@@ -41,6 +42,8 @@ class TaskConsumer(AsyncJsonWebsocketConsumer):
             await self.update_task(content)
         elif message_type == 'view.tasks':
             await self.view_tasks()
+        elif message_type == 'delete.task':
+            await self.delete_task(content)
 
     async def echo_message(self, event):
         await self.send_json(event)
@@ -69,20 +72,12 @@ class TaskConsumer(AsyncJsonWebsocketConsumer):
 
     async def update_task(self, event):
         task = await self._update_task(event.get('data'))
-        task_data = ReadOnlyTaskSerializer(task).data
-
-        # Handle add only if trip is not being tracked.
-        # This happens when a driver accepts a request.
-        # if task.ident not in self.tasks:
-        #     self.tasks.add(task.ident)
-        #     await self.channel_layer.group_add(
-        #         group=task.ident,
-        #         channel=self.channel_name
-        #     )
-
+        updated_task = ReadOnlyTaskSerializer(task).data
+        tasks = await self._return_tasks(self.scope['user'])
+        # TODO: Create response for Updated Task failure
         await self.send_json({
-            'type': 'MESSAGE',
-            'data': task_data
+            'type': 'TASK_UPDATED',
+            'data': tasks
         })
 
     async def view_tasks(self):
@@ -90,6 +85,21 @@ class TaskConsumer(AsyncJsonWebsocketConsumer):
         await self.send_json({
             'type': 'TASKS',
             'data': tasks
+        })
+
+    async def delete_task(self, event):
+        try:
+            delete_status = await self._delete_task(event.get('data'))
+            if delete_status == 1:
+                tasks = await self._return_tasks(self.scope['user'])
+                await self.send_json({
+                    'type': 'DELETE_CONFIRMATION',
+                    'data': tasks
+                })
+            else: raise
+        except: await self.send_json({
+            'type': 'DELETE FAILED',
+            'data': event.get('data')
         })
 
     async def disconnect(self, code):
@@ -133,12 +143,23 @@ class TaskConsumer(AsyncJsonWebsocketConsumer):
 
     @database_sync_to_async
     def _update_task(self, content):
-        print('Task before update in consumers: ',content)
         instance = Task.objects.get(ident=content.get('ident'))
         serializer = TaskSerializer(data=content)
         serializer.is_valid(raise_exception=True)
         task = serializer.update(instance, serializer.validated_data)
         return task
+
+    @database_sync_to_async
+    def _delete_task(self, content):
+        try:
+            instance = Task.objects.get(ident=content.get('ident'))
+            serializer = TaskSerializer(data=content)
+            serializer.is_valid(raise_exception=True)
+            instance.delete()
+            return 1
+        except:
+            print('Deletion fo Task failed, from _Delete_task in consumers...');
+            return 0
 
 
     @database_sync_to_async
