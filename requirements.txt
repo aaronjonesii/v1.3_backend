@@ -1,5 +1,6 @@
 channels==2.1.7
 channels-redis==2.3.3
+daphne==2.2.5
 Django==2.1.4
 django-cors-headers==2.4.0
 django-mysql==2.4.1
