@@ -27,7 +27,7 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '')
 if os.getenv('DEBUG') == '1': DEBUG = True
 else: DEBUG = False
 
-ALLOWED_HOSTS = [os.environ.get('ALLOWED_HOSTS', 'localhost')]
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost').split(',')
 
 CORS_ORIGIN_WHITELIST = (os.environ.get('CORS_ORIGIN_WHITELIST', ''))
 
