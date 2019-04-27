@@ -27,8 +27,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '')
 if os.getenv('DEBUG') == '1': DEBUG = True
 else: DEBUG = False
 
-# ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
-ALLOWED_HOSTS = ['api.anonsys.tech', '127.0.0.1:4200', 'localhost:4200']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
+# ALLOWED_HOSTS = ['api.anonsys.tech']
 
 
 CORS_ORIGIN_WHITELIST = (os.environ.get('CORS_ORIGIN_WHITELIST', ''))
