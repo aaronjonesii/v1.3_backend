@@ -27,11 +27,11 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '')
 if os.getenv('DEBUG') == '1': DEBUG = True
 else: DEBUG = False
 
-# ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
-ALLOWED_HOSTS = ['api.anonsys.tech', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(',')
+# ALLOWED_HOSTS = ['api.anonsys.tech', 'localhost', '127.0.0.1']
 
 
-CORS_ORIGIN_WHITELIST = (os.environ.get('CORS_ORIGIN_WHITELIST', ''))
+CORS_ORIGIN_WHITELIST = os.environ.get('CORS_ORIGIN_WHITELIST').split(',')
 
 # CORS_ORIGIN_ALLOW_ALL = True
 
@@ -209,14 +209,17 @@ LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': f'{BASE_DIR}/django_debug.log',
         },
     },
     'loggers': {
         'django': {
-            'handlers': ['console'],
+            'handlers': ['file'],
             'level': 'DEBUG',
+            'propagate': True,
         },
     },
 }
