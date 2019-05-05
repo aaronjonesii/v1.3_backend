@@ -46,7 +46,7 @@ async def auth_connect(user):
     return communicator
 
 
-async def create_task(user, comm, title='Task One', description='Description of Task One', tags='["test", "TDD"]'):
+async def create_task(user, comm, title='Test Task One', description='Description of Task One', tags='["test", "TDD"]'):
     comm_task = {
         'type': 'create.task',
         'data': {
@@ -66,7 +66,7 @@ async def update_task(user, comm, task, status):
     updated_task = {
         'type': 'update.task',
         'data': {
-            'id': task['id'],
+            # 'id': task['id'],
             'ident': task['ident'],
             'title': 'UPDATED: ' + task['title'],
             'description': task['description'],
@@ -105,17 +105,17 @@ class TestWebsockets:
         # User One Task One
         await create_task(user, comm, title='Test Task One')
         response = await comm.receive_json_from()
-        data = response.get('data')
+        data = json.loads(response.get('data'))[0]['fields']
         assert_equal('Test Task One', data['title'])
-        assert_equal(user.username, data.get('owner')['username'])
+        assert_equal(user.id, data.get('owner'))
         print('\n Successfully Created First Task: ', data)
 
         # User One Task Two
         await create_task(user, comm, title='Test Task Two', description='Description fo Task Two')
         response = await comm.receive_json_from()
-        data = response.get('data')
+        data = json.loads(response.get('data'))[1]['fields']
         assert_equal('Test Task Two', data['title'])
-        assert_equal(user.username, data.get('owner')['username'])
+        assert_equal(user.id, data.get('owner'))
         print('\n Successfully Created Second Task: ', data)
 
         # User One All Tasks
@@ -131,9 +131,9 @@ class TestWebsockets:
         print('\n Successfully Created User: ', user2)
         await create_task(user2, comm, title='User Number Two Test Task')
         response = await comm.receive_json_from()
-        data = response.get('data')
+        data = json.loads(response.get('data'))[0]['fields']
         assert_equal('User Number Two Test Task', data['title'])
-        assert_equal(user2.username, data.get('owner')['username'])
+        assert_equal(user2.id, data.get('owner'))
         print('\n Successfully Created User Two First Task: ', data)
 
         # User Two All Tasks
@@ -147,9 +147,9 @@ class TestWebsockets:
         comm = await auth_connect(user)
         await create_task(user, comm, title='Test Task Three', description='Description of Test Task Three after reconnecting')
         response = await comm.receive_json_from()
-        data = response.get('data')
+        data = json.loads(response.get('data'))[2]['fields']
         assert_equal('Test Task Three', data['title'])
-        assert_equal(user.username, data.get('owner')['username'])
+        assert_equal(user.id, data.get('owner'))
         print('\n Successfully Created Task Three after re-connecting: ', data)
 
         # User One All Tasks
@@ -167,15 +167,15 @@ class TestWebsockets:
         # Create Task
         await create_task(user, comm, title='Task to test updates')
         response = await comm.receive_json_from()
-        task = response.get('data')
+        task = json.loads(response.get('data'))[0]['fields']
         assert_equal('Task to test updates', task['title'])
-        assert_equal(user.username, task['owner']['username'])
+        assert_equal(user.id, task['owner'])
         print(f"\n User: {user} created the following tasks: {task}")
 
         # Update Task
         await update_task(user, comm, task, status=Task.IN_PROGRESS)
         response = await comm.receive_json_from()
-        task = response.get('data')
+        task = json.loads(response.get('data'))[0]['fields']
         assert_equal(Task.IN_PROGRESS, task['status'])
         assert_equal('UPDATED: Task to test updates', task['title'])
         print(f"\n User: {user} Updated the following tasks: {task}")
