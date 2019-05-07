@@ -1,0 +1,24 @@
+[Unit]
+Description = Daphne Server
+After = network.target
+
+[Service]
+User = nginx
+Group = nginx
+WorkingDirectory = /srv/www/backend/
+Environment = DJANGO_SETTINGS_MODULE=djangoAPI.settings
+Environment = DJANGO_DEFAULT_DATABASE_NAME=anonsys_db
+Environment = DJANGO_DATABASE_PWD=Computer$ecurity0ff!cer
+Environment = SECRET_KEY=0k&r)@)28b69w657%6e48uuaw^(f_g!*z@@3!&mffa\=yk1-ci-
+Environment = DEBUG=1
+Environment = ALLOWED_HOSTS=anonsys.tech
+Environment = CORS_ORIGIN_WHITELIST=anonsys.tech,localhost:4200
+Environment = EMAIL_HOST=mail.anonsys.tech
+Environment = EMAIL_HOST_USER=_@anonsys.tech
+Environment = EMAIL_HOST_PASSWORD=$ecurity0ff!cer
+Environment = GOOGLE_RECAPTCHA_SECRET_KEY=6LfwO3cUAAAAAGLnNBPdfG-dFYHADfWCAmhCFYsC
+ExecStart = /usr/local/bin/daphne -u /tmp/daphne/daphne.sock --access-log - --proxy-headers djangoAPI.asgi:application
+# Restart = always
+
+[Install]
+WantedBy = multi-user.target
