@@ -104,6 +104,7 @@ DATABASES = {
         'OPTIONS': {
             'autocommit': False,
             'charset': 'utf8mb4',
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES', innodb_strict_mode=1",
         },
         # Tell Django to build the test database with the 'utf8mb4' character set
         'TEST': {
@@ -205,21 +206,21 @@ CHANNEL_LAYERS = {
     },
 }
 
-#LOGGING = {
-#    'version': 1,
-#    'disable_existing_loggers': False,
-#    'handlers': {
-#        'file': {
-#            'level': 'DEBUG',
-#            'class': 'logging.FileHandler',
-#            'filename': '/path/to/django/debug.log',
-#        },
-#    },
-#    'loggers': {
-#        'django': {
-#            'handlers': ['file'],
-#            'level': 'DEBUG',
-#            'propagate': True,
-#        },
-#    },
-#}
+LOGGING = {
+   'version': 1,
+   'disable_existing_loggers': False,
+   'handlers': {
+       'file': {
+           'level': 'INFO',
+           'class': 'logging.FileHandler',
+           'filename': f'{BASE_DIR}/django_debug.log',
+       },
+   },
+   'loggers': {
+       'django': {
+           'handlers': ['file'],
+           'level': 'ERROR',
+           'propagate': True,
+       },
+   },
+}
