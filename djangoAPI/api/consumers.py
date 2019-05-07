@@ -15,7 +15,6 @@ class TaskConsumer(AsyncJsonWebsocketConsumer):
     def __init__(self, scope):
         super().__init__(scope)
 
-        # Keep track of the user's trips.
         self.tasks = set()
 
     async def connect(self):
@@ -23,13 +22,7 @@ class TaskConsumer(AsyncJsonWebsocketConsumer):
         if user.is_anonymous:
             await self.close()
         else:
-            # Get trips and add rider to each one's group.
-            channel_groups = []
-            # print(self.scope)
             self.tasks = set(await self._get_tasks(self.scope['user']))
-            # for task in self.tasks:
-            #     channel_groups.append(self.channel_layer.group_add(task, self.channel_name))
-            # asyncio.gather(*channel_groups)
             # TODO: Check if token is valid
             await self.accept()
 

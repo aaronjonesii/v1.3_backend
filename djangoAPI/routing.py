@@ -37,8 +37,11 @@ class TokenAuthMiddleware:
                 user = get_user_model().objects.get(id__contains=user_id)
                 if TokenVerifySerializer().validate(attrs={"token": access_token}) == {} : # If token is valid
                     scope['user'] = user
-            except TokenError: # Catch invalid/expired token from TokenVerifySerializer()
+            except TokenError as tokenerror: # Catch invalid/expired token from TokenVerifySerializer()
+                print('TokenError occurred => ', tokenerror)
                 pass
+            except Exception as unknownError:
+                print('Unkonwn Error occured in Token Validation #routing => ', unknownError)
         return self.inner(scope)
 
 TokenAuthMiddlewareStack = lambda inner: TokenAuthMiddleware(AuthMiddlewareStack(inner))
