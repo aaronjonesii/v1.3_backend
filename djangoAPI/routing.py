@@ -40,6 +40,9 @@ class TokenAuthMiddleware:
             except TokenError as tokenerror: # Catch invalid/expired token from TokenVerifySerializer()
                 print('TokenError occurred => ', tokenerror)
                 pass
+            except jwt.exceptions.ExpiredSignatureError as expirederror: # Catch invalid/expired token from TokenVerifySerializer()
+                print('[!] Need to handle this error [!] ExpiredSignatureError occurred => ', expirederror)
+                pass
             except Exception as unknownError:
                 print('Unkonwn Error occured in Token Validation #routing => ', unknownError)
         return self.inner(scope)
