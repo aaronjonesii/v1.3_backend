@@ -26,8 +26,6 @@ class TokenAuthMiddleware:
         self.inner = inner
 
     def __call__(self, scope):
-        # TODO: Pass token in from query string amd use TokenVerifySerializer to verify validity
-        # TODO: Get User ID from payload of JWT token
         if scope['query_string']:
             try:
                 request_query_string = scope['query_string'].decode('utf-8').split('=')
